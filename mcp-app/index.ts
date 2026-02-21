@@ -4,6 +4,12 @@ import { z } from "zod";
 const OPENDENTAL_API_URL =
   process.env.OPENDENTAL_API_URL || "http://localhost:8000";
 
+const TOOL_TIMEOUTS = {
+  "get-patients": 5 * 60_000,
+  "get-patient-chart": 8 * 60_000,
+  "get-reports": 10 * 60_000,
+} as const;
+
 const server = new MCPServer({
   name: "opendental",
   title: "OpenDental",
@@ -20,11 +26,12 @@ const server = new MCPServer({
   ],
 });
 
-// Shared helper to call the FastAPI backend
+// Shared helper to call the FastAPI backend with per-tool timeout
 async function callBackend(
   path: string,
   method: "GET" | "POST" = "POST",
-  params?: Record<string, string>
+  params?: Record<string, string>,
+  timeoutMs: number = 5 * 60_000
 ) {
   const url = new URL(path, OPENDENTAL_API_URL);
   if (params) {
@@ -33,7 +40,7 @@ async function callBackend(
     }
   }
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 120_000);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(url.toString(), {
       method,
@@ -63,7 +70,12 @@ server.tool(
   },
   async () => {
     try {
-      const json = await callBackend("/api/patients");
+      const json = await callBackend(
+        "/api/patients",
+        "POST",
+        undefined,
+        TOOL_TIMEOUTS["get-patients"]
+      );
       const data = json.data ?? json;
       const patients = data.patients ?? [];
       const totalCount = data.total_count ?? patients.length;
@@ -98,9 +110,12 @@ server.tool(
   },
   async ({ patient_name }) => {
     try {
-      const json = await callBackend("/api/patient_chart", "POST", {
-        patient_name,
-      });
+      const json = await callBackend(
+        "/api/patient_chart",
+        "POST",
+        { patient_name },
+        TOOL_TIMEOUTS["get-patient-chart"]
+      );
       const data = json.data ?? json;
       const chart = data.patient_chart;
       if (!chart) return error("No chart data returned for this patient.");
@@ -135,9 +150,12 @@ server.tool(
   },
   async ({ patient_name }) => {
     try {
-      const json = await callBackend("/api/reports", "POST", {
-        patient_name,
-      });
+      const json = await callBackend(
+        "/api/reports",
+        "POST",
+        { patient_name },
+        TOOL_TIMEOUTS["get-reports"]
+      );
       const data = json.data ?? json;
       const report = data.patient_report;
       if (!report) return error("No report data returned for this patient.");
