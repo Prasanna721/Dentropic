@@ -1,0 +1,9 @@
+{
+  "name": "dentropic",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd mcp-app && npm install",
+    "build": "cd mcp-app && npm run build",
+    "start": "cd mcp-app && npm run start"
+  }
+}
