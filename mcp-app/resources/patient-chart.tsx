@@ -14,7 +14,8 @@ const propsSchema = z.object({
 });
 
 export const widgetMetadata: WidgetMetadata = {
-  description: "Dental chart with tooth visualization, procedures, and clinical notes",
+  description:
+    "Dental chart with tooth visualization, procedures, and clinical notes",
   props: propsSchema,
   exposeAsTool: false,
 };
@@ -60,7 +61,10 @@ const CONDITION_MAP: Record<string, { label: string; key: string }> = {
   implant: { label: "Implant", key: "implant" },
 };
 
-function getConditionColor(condition: string, colors: ReturnType<typeof useColors>) {
+function getConditionColor(
+  condition: string,
+  colors: ReturnType<typeof useColors>,
+) {
   const key = CONDITION_MAP[condition.toLowerCase()]?.key ?? "other";
   return (colors as any)[key] ?? colors.other;
 }
@@ -71,19 +75,12 @@ export default function PatientChartWidget() {
   const c = useColors();
   const [tab, setTab] = useState<Tab>("teeth");
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
-  const [procFilter, setProcFilter] = useState<"all" | "completed" | "planned">("all");
+  const [procFilter, setProcFilter] = useState<"all" | "completed" | "planned">(
+    "all",
+  );
 
-  if (isPending) {
-    return (
-      <McpUseProvider autoSize>
-        <div style={{ padding: 40, textAlign: "center", color: c.textSecondary }}>
-          Loading dental chart…
-        </div>
-      </McpUseProvider>
-    );
-  }
-
-  const { chart, patientName } = props;
+  const chart = props?.chart ?? {};
+  const patientName = props?.patientName ?? "Patient";
   const info = chart?.patient_info ?? {};
   const toothChart = chart?.tooth_chart ?? {};
   const teethConditions: any[] = toothChart.teeth_with_conditions ?? [];
@@ -112,13 +109,26 @@ export default function PatientChartWidget() {
     });
   }, [procedures, procFilter]);
 
+  if (isPending) {
+    return (
+      <McpUseProvider autoSize>
+        <div
+          style={{ padding: 40, textAlign: "center", color: c.textSecondary }}
+        >
+          Loading dental chart…
+        </div>
+      </McpUseProvider>
+    );
+  }
+
   const tabStyle = (t: Tab): React.CSSProperties => ({
     padding: "8px 20px",
     fontSize: 14,
     fontWeight: 600,
     cursor: "pointer",
     border: "none",
-    borderBottom: tab === t ? `3px solid ${c.tabActive}` : "3px solid transparent",
+    borderBottom:
+      tab === t ? `3px solid ${c.tabActive}` : "3px solid transparent",
     backgroundColor: "transparent",
     color: tab === t ? c.tabActive : c.textSecondary,
   });
@@ -181,7 +191,8 @@ export default function PatientChartWidget() {
               borderRadius: condition === "missing" ? 4 : "50%",
               backgroundColor: color,
               opacity: condition === "missing" ? 0.4 : 1,
-              border: condition === "missing" ? `2px dashed ${c.missing}` : "none",
+              border:
+                condition === "missing" ? `2px dashed ${c.missing}` : "none",
             }}
           />
           <span
@@ -203,7 +214,14 @@ export default function PatientChartWidget() {
     return (
       <div>
         {/* Upper arch */}
-        <div style={{ textAlign: "center", fontSize: 12, color: c.textSecondary, marginBottom: 4 }}>
+        <div
+          style={{
+            textAlign: "center",
+            fontSize: 12,
+            color: c.textSecondary,
+            marginBottom: 4,
+          }}
+        >
           Upper Arch
         </div>
         <div
@@ -235,7 +253,14 @@ export default function PatientChartWidget() {
         >
           {lower.map(renderTooth)}
         </div>
-        <div style={{ textAlign: "center", fontSize: 12, color: c.textSecondary, marginTop: 4 }}>
+        <div
+          style={{
+            textAlign: "center",
+            fontSize: 12,
+            color: c.textSecondary,
+            marginTop: 4,
+          }}
+        >
           Lower Arch
         </div>
 
@@ -377,12 +402,16 @@ export default function PatientChartWidget() {
           { label: "Total", val: procSummary.total_procedures },
           {
             label: "Charges",
-            val: procSummary.total_charges != null
-              ? `$${Number(procSummary.total_charges).toLocaleString()}`
-              : "—",
+            val:
+              procSummary.total_charges != null
+                ? `$${Number(procSummary.total_charges).toLocaleString()}`
+                : "—",
           },
           { label: "Exams", val: procSummary.procedures_by_type?.exams },
-          { label: "Cleanings", val: procSummary.procedures_by_type?.cleanings },
+          {
+            label: "Cleanings",
+            val: procSummary.procedures_by_type?.cleanings,
+          },
           { label: "Fillings", val: procSummary.procedures_by_type?.fillings },
           { label: "Crowns", val: procSummary.procedures_by_type?.crowns },
         ].map((s) => (
@@ -396,7 +425,9 @@ export default function PatientChartWidget() {
               fontSize: 13,
             }}
           >
-            <div style={{ color: c.textSecondary, fontSize: 11 }}>{s.label}</div>
+            <div style={{ color: c.textSecondary, fontSize: 11 }}>
+              {s.label}
+            </div>
             <div style={{ fontWeight: 700 }}>{s.val ?? "—"}</div>
           </div>
         ))}
@@ -404,22 +435,38 @@ export default function PatientChartWidget() {
 
       {/* Table */}
       <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
+        <table
+          style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}
+        >
           <thead>
             <tr>
-              {["Date", "Tooth", "Surface", "Code", "Description", "Status", "Provider", "Amount"].map(
-                (h) => (
-                  <th key={h} style={thStyle}>
-                    {h}
-                  </th>
-                )
-              )}
+              {[
+                "Date",
+                "Tooth",
+                "Surface",
+                "Code",
+                "Description",
+                "Status",
+                "Provider",
+                "Amount",
+              ].map((h) => (
+                <th key={h} style={thStyle}>
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {filteredProcs.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ padding: 30, textAlign: "center", color: c.textSecondary }}>
+                <td
+                  colSpan={8}
+                  style={{
+                    padding: 30,
+                    textAlign: "center",
+                    color: c.textSecondary,
+                  }}
+                >
                   No procedures found.
                 </td>
               </tr>
@@ -429,7 +476,13 @@ export default function PatientChartWidget() {
                   <td style={tdStyle}>{p.date || "—"}</td>
                   <td style={tdStyle}>{p.tooth || "—"}</td>
                   <td style={tdStyle}>{p.surface || "—"}</td>
-                  <td style={{ ...tdStyle, fontFamily: "monospace", fontSize: 12 }}>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      fontFamily: "monospace",
+                      fontSize: 12,
+                    }}
+                  >
                     {p.ada_code || p.dx || "—"}
                   </td>
                   <td style={tdStyle}>{p.description || "—"}</td>
@@ -440,7 +493,9 @@ export default function PatientChartWidget() {
                         borderRadius: 12,
                         fontSize: 11,
                         fontWeight: 600,
-                        backgroundColor: (p.status ?? "").toLowerCase().includes("complet")
+                        backgroundColor: (p.status ?? "")
+                          .toLowerCase()
+                          .includes("complet")
                           ? c.healthy
                           : c.filling,
                         color: "#fff",
@@ -622,10 +677,16 @@ export default function PatientChartWidget() {
           <button style={tabStyle("teeth")} onClick={() => setTab("teeth")}>
             Tooth Chart
           </button>
-          <button style={tabStyle("procedures")} onClick={() => setTab("procedures")}>
+          <button
+            style={tabStyle("procedures")}
+            onClick={() => setTab("procedures")}
+          >
             Procedures ({procedures.length})
           </button>
-          <button style={tabStyle("clinical")} onClick={() => setTab("clinical")}>
+          <button
+            style={tabStyle("clinical")}
+            onClick={() => setTab("clinical")}
+          >
             Clinical
           </button>
         </div>
