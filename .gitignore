@@ -16,7 +16,7 @@ out/
 dist/
 build/
 *.egg-info/
-.frontend/
+frontend/
 
 # IDE
 .idea/
@@ -41,4 +41,4 @@ trajectories/
 
 README.md
 cua.md
-.plan
+.plan/
