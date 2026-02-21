@@ -26,7 +26,8 @@ const propsSchema = z.object({
 });
 
 export const widgetMetadata: WidgetMetadata = {
-  description: "Patient list table with search, sort, pagination, and drill-down",
+  description:
+    "Patient list table with search, sort, pagination, and drill-down",
   props: propsSchema,
   exposeAsTool: false,
 };
@@ -56,6 +57,9 @@ function useColors() {
     badgeGray: dark ? "#2d2d2d" : "#e9ecef",
     badgeGrayText: dark ? "#adb5bd" : "#495057",
     inputBg: dark ? "#0f1b30" : "#ffffff",
+    success: dark ? "#10b981" : "#059669",
+    warning: dark ? "#f59e0b" : "#d97706",
+    shadow: dark ? "0 4px 6px rgba(0,0,0,0.3)" : "0 4px 6px rgba(0,0,0,0.1)",
   };
 }
 
@@ -69,6 +73,8 @@ export default function PatientListWidget() {
   const [sortKey, setSortKey] = useState<SortKey>("last_name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [page, setPage] = useState(1);
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<number | null>(null);
 
   const filtered = useMemo(() => {
     if (!props?.patients) return [];
@@ -105,7 +111,7 @@ export default function PatientListWidget() {
   const safePage = Math.min(page, totalPages);
   const pageData = sorted.slice(
     (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE
+    safePage * PAGE_SIZE,
   );
 
   const toggleSort = (key: SortKey) => {
@@ -120,8 +126,31 @@ export default function PatientListWidget() {
   if (isPending) {
     return (
       <McpUseProvider autoSize>
-        <div style={{ padding: 40, textAlign: "center", color: c.textSecondary }}>
-          Loading patients…
+        <div
+          style={{ padding: 40, textAlign: "center", color: c.textSecondary }}
+        >
+          <div style={{ fontSize: 16, marginBottom: 12 }}>
+            ⏳ Loading patients…
+          </div>
+          <div
+            style={{
+              width: 200,
+              height: 4,
+              backgroundColor: c.border,
+              borderRadius: 2,
+              margin: "0 auto",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: "30%",
+                height: "100%",
+                backgroundColor: c.accent,
+                animation: "loading 1.5s ease-in-out infinite",
+              }}
+            />
+          </div>
         </div>
       </McpUseProvider>
     );
@@ -219,32 +248,119 @@ export default function PatientListWidget() {
           }}
         >
           <div>
-            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: 20,
+                fontWeight: 700,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <span style={{ fontSize: 24 }}>👥</span>
               Patients
             </h2>
             <span style={{ fontSize: 13, color: c.textSecondary }}>
-              {props.totalCount} total · {filtered.length} shown
+              <strong>{props.totalCount}</strong> total ·{" "}
+              <strong>{filtered.length}</strong> shown
+              {search && ` · Searching: "${search}"`}
             </span>
           </div>
-          <input
-            type="text"
-            placeholder="Search name, city, phone…"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            style={{
-              padding: "8px 14px",
-              fontSize: 14,
-              borderRadius: 8,
-              border: `1px solid ${c.border}`,
-              backgroundColor: c.inputBg,
-              color: c.text,
-              width: 260,
-              outline: "none",
-            }}
-          />
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <div style={{ position: "relative" }}>
+              <span
+                style={{
+                  position: "absolute",
+                  left: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  fontSize: 16,
+                }}
+              >
+                🔍
+              </span>
+              <input
+                type="text"
+                placeholder="Search name, city, phone…"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                style={{
+                  padding: "8px 14px 8px 36px",
+                  fontSize: 14,
+                  borderRadius: 8,
+                  border: `2px solid ${search ? c.accent : c.border}`,
+                  backgroundColor: c.inputBg,
+                  color: c.text,
+                  width: 260,
+                  outline: "none",
+                  transition: "all 0.2s ease",
+                }}
+              />
+              {search && (
+                <button
+                  onClick={() => {
+                    setSearch("");
+                    setPage(1);
+                  }}
+                  style={{
+                    position: "absolute",
+                    right: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: 16,
+                    padding: 4,
+                    opacity: 0.6,
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => {
+                const csv =
+                  "Last Name,First Name,Age,Phone,City,Status\n" +
+                  sorted
+                    .map(
+                      (p) =>
+                        `${p.last_name},${p.first_name},${p.age || ""},${getPhone(p)},${p.city || ""},${p.status || ""}`,
+                    )
+                    .join("\n");
+                const blob = new Blob([csv], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "patients.csv";
+                a.click();
+              }}
+              style={{
+                padding: "8px 14px",
+                fontSize: 14,
+                fontWeight: 600,
+                border: "none",
+                borderRadius: 8,
+                cursor: "pointer",
+                backgroundColor: c.success,
+                color: "#fff",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "scale(1.05)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.transform = "scale(1)")
+              }
+            >
+              📥 Export CSV
+            </button>
+          </div>
         </div>
 
         {/* Table */}
@@ -288,57 +404,100 @@ export default function PatientListWidget() {
                       color: c.textSecondary,
                     }}
                   >
-                    No patients found.
+                    <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
+                    <div style={{ fontSize: 16, fontWeight: 600 }}>
+                      No patients found
+                    </div>
+                    <div style={{ fontSize: 14, marginTop: 4 }}>
+                      Try adjusting your search criteria
+                    </div>
                   </td>
                 </tr>
               ) : (
                 pageData.map((p, i) => (
                   <tr
                     key={p.patient_id ?? i}
-                    style={{ transition: "background 0.15s" }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background = c.rowHover)
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "transparent")
-                    }
+                    style={{
+                      transition: "all 0.2s ease",
+                      backgroundColor:
+                        selectedPatient === p.patient_id
+                          ? c.rowHover
+                          : "transparent",
+                      transform: hoveredRow === i ? "scale(1.01)" : "scale(1)",
+                      boxShadow: hoveredRow === i ? c.shadow : "none",
+                    }}
+                    onMouseEnter={() => setHoveredRow(i)}
+                    onMouseLeave={() => setHoveredRow(null)}
+                    onClick={() => setSelectedPatient(p.patient_id ?? null)}
                   >
                     <td style={{ ...tdStyle, fontWeight: 600 }}>
                       {p.last_name}
                     </td>
                     <td style={tdStyle}>{p.first_name}</td>
                     <td style={tdStyle}>{p.age ?? "—"}</td>
-                    <td style={{ ...tdStyle, fontSize: 13 }}>
-                      {getPhone(p)}
-                    </td>
+                    <td style={{ ...tdStyle, fontSize: 13 }}>{getPhone(p)}</td>
                     <td style={tdStyle}>{p.city || "—"}</td>
                     <td style={tdStyle}>{statusBadge(p.status)}</td>
                     <td style={tdStyle}>
-                      <button
-                        style={btnStyle}
-                        onClick={() =>
-                          sendFollowUpMessage(
-                            `Show the dental chart for ${p.first_name} ${p.last_name}`
-                          )
-                        }
-                      >
-                        Chart
-                      </button>
-                      <button
-                        style={{
-                          ...btnStyle,
-                          backgroundColor: "transparent",
-                          color: c.accent,
-                          border: `1px solid ${c.accent}`,
-                        }}
-                        onClick={() =>
-                          sendFollowUpMessage(
-                            `Show the full report for ${p.first_name} ${p.last_name}`
-                          )
-                        }
-                      >
-                        Report
-                      </button>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button
+                          style={{
+                            ...btnStyle,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            sendFollowUpMessage(
+                              `Show the dental chart for ${p.first_name} ${p.last_name}`,
+                            );
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              c.accentHover;
+                            e.currentTarget.style.transform =
+                              "translateY(-2px)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = c.accent;
+                            e.currentTarget.style.transform = "translateY(0)";
+                          }}
+                        >
+                          🦷 Chart
+                        </button>
+                        <button
+                          style={{
+                            ...btnStyle,
+                            backgroundColor: "transparent",
+                            color: c.accent,
+                            border: `2px solid ${c.accent}`,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            sendFollowUpMessage(
+                              `Show the full report for ${p.first_name} ${p.last_name}`,
+                            );
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = c.accent;
+                            e.currentTarget.style.color = "#fff";
+                            e.currentTarget.style.transform =
+                              "translateY(-2px)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              "transparent";
+                            e.currentTarget.style.color = c.accent;
+                            e.currentTarget.style.transform = "translateY(0)";
+                          }}
+                        >
+                          📋 Report
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -383,8 +542,7 @@ export default function PatientListWidget() {
                   ...btnStyle,
                   backgroundColor:
                     safePage >= totalPages ? c.badgeGray : c.accent,
-                  cursor:
-                    safePage >= totalPages ? "not-allowed" : "pointer",
+                  cursor: safePage >= totalPages ? "not-allowed" : "pointer",
                 }}
               >
                 Next

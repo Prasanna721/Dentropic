@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "opendental": {
+      "url": "http://localhost:3000",
+      "name": "OpenDental",
+      "description": "OpenDental patient management via CUA - Access patient data, reports, and dental charts"
+    }
+  }
+}

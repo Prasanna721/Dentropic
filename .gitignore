@@ -39,6 +39,7 @@ trajectories/
 *.bak
 *.tmp
 
-README.md
 cua.md
+.plan
+# README.md
 .plan/
