@@ -2,27 +2,16 @@
 
 End-to-end Open Dental automation MCP app powered by CUA.
 
-This repository has two main parts:
+## Problem
+Open Dental runs on Windows, and thousands of dental clinics still use it. Onboarding teams and staff takes time, and day-to-day use can be operationally heavy.
 
-- `backend/`: FastAPI service that runs CUA computer-agent workflows against a Windows sandbox
-- `mcp-app/`: MCP server (mcp-use) that exposes tools/widgets and calls the backend APIs
+<img width="511" height="385" alt="Screenshot 2026-02-21 at 4 48 43 PM" src="https://github.com/user-attachments/assets/bc9536c9-18df-41f8-9e90-77a56c9ff197" />
 
-## Architecture
+## UVP
+Dentropic is built on top of Open Dental and uses MCP deployed on Manufact to make Open Dental workflows easier, faster, and more accessible through AI-driven automation.
 
-```text
-ChatGPT / Inspector
-      |
-      v
-mcp-app (Node, mcp-use, port 3000)
-      |
-      v
-backend (FastAPI, port 8000)
-      |
-      v
-CUA Windows sandbox (Open Dental UI automation)
-```
 
-## Test and running
+## Running MCP
 1. get-patient-list
  <img width="1238" height="769" alt="Screenshot 2026-02-21 at 4 45 47 PM" src="https://github.com/user-attachments/assets/5131c1be-3c32-4223-bddd-3af17777ce7f" />
 
@@ -133,6 +122,45 @@ Backend CUA tasks can be long-running. Ensure backend is running and reachable a
 ## Deployment
 
 See `deployed.md` for current backend and MCP URLs.
+
+
+# Open Dental Market & Revenue Snapshot
+
+## Revenue (Estimated)
+
+- **Estimated annual revenue:** **~$40–60 million USD**
+- **Revenue model:** Primarily subscription-based dental practice management software
+- **Customer profile:** Independent dental practices and DSOs (Dental Service Organizations)
+
+## Users / Market Presence
+
+- **Estimated practices served:** **20,000+ dental practices**
+- **Estimated end users:** **60,000–100,000+** (dentists, hygienists, office staff)
+- **Primary markets:** United States and Canada
+
+## Company Context
+
+- **Founded:** 2003
+- **Headquarters:** Oregon, USA
+- **Company type:** Privately held dental practice management software company
+
+## Competitive Landscape
+
+Open Dental competes with:
+
+- Dentrix
+- Eaglesoft
+- Curve Dental
+
+## Optional Follow-ups
+
+If needed, additional analysis can include:
+
+1. Market share comparison vs Dentrix/Eaglesoft
+2. Growth trends over time
+3. Valuation estimates
+4. Regional breakdown
+
 
 ## Module-specific docs
 
