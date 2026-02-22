@@ -9,6 +9,12 @@ Open Dental runs on Windows, and thousands of dental clinics still use it. Onboa
 
 <img width="511" height="385" alt="Screenshot 2026-02-21 at 4 48 43 PM" src="https://github.com/user-attachments/assets/bc9536c9-18df-41f8-9e90-77a56c9ff197" />
 
+## The Manufact and Cloudflare server
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/eb71db44-11bb-4948-8fbf-5cb5971d7b27" height="300" />
+  <img src="https://github.com/user-attachments/assets/15d5868f-b30e-4c49-a0d5-0915e65b204f" height="300" />
+</p>
+
 ## UVP
 Dentropic is built on top of Open Dental and uses MCP deployed on Manufact to make Open Dental workflows easier, faster, and more accessible through AI-driven automation.
 
